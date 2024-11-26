@@ -12,7 +12,7 @@ FROM python:3.12-slim
 COPY --from=build /usr/local/go /usr/local/go
 COPY --from=build /go/bin/ /root/go/bin
 RUN apt update &&  apt install zip curl wget git chromium -y && apt clean && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir b-hunters==1.1.0
+RUN pip install --no-cache-dir b-hunters==1.1.4
 
 # Set environment variables for Go
 ENV PATH="$PATH:/usr/local/go/bin:/root/go/bin:/usr/local/go/bin:$HOME/.local/bin"
