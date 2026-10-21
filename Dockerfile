@@ -1,8 +1,8 @@
 # Build Stage
-FROM golang:1.21.1 AS build
+FROM golang:1.26 AS build
 
 # Install Go tools
-RUN CGO_ENABLED=1 go install github.com/projectdiscovery/katana/cmd/katana@latest
+RUN CGO_ENABLED=0 go install github.com/projectdiscovery/katana/cmd/katana@v1.8.0
  
     
 # Runtime Stage (final smaller image using Python slim)
@@ -12,7 +12,7 @@ FROM python:3.12-slim
 COPY --from=build /usr/local/go /usr/local/go
 COPY --from=build /go/bin/ /root/go/bin
 RUN apt update &&  apt install zip curl wget git chromium -y && apt clean && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir b-hunters==1.1.13
+RUN pip install --no-cache-dir b-hunters==1.2.0
 
 # Set environment variables for Go
 ENV PATH="$PATH:/usr/local/go/bin:/root/go/bin:/usr/local/go/bin:$HOME/.local/bin"

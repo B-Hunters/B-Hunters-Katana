@@ -105,8 +105,7 @@ class katanam(BHunters):
                     {"type": "paths", "stage": "scan"},
                     payload={"data": urlstripped,
                             "subdomain":domain,
-                    "source":"katana",
-                    "type":"file"
+                    "source":"katana"
                     }
                 )
                 self.send_task(tag_task)
