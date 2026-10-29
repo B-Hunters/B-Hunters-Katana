@@ -32,17 +32,44 @@ class katanam(BHunters):
 
     def __init__(self, *args, **kwargs) -> None:
         super().__init__(*args, **kwargs)
-                    
-    def scan(self,url):        
-        result=self.katanacommand(url)
-        
+
+    def header_args(self,headers):
+        """The arguments that give katana the session headers.
+
+        Katana takes them as ``-H "name: value"`` and sends them with
+        every request it makes.
+        """
+        args=[]
+        for name,value in headers.items():
+            args += ["-H", f"{name}: {value}"]
+        return args
+
+    def paths_payload(self,task,domain,urlstripped,path_list=None):
+        """The payload of the paths task this crawler publishes.
+
+        The session of the target travels with the task: the scanners
+        that consume it have to send the same headers the crawler did.
+        """
+        payload = {
+            "data": urlstripped,
+            "subdomain": domain,
+            "source": "katana",
+            "auth": self.auth_payload(task),
+        }
+        if path_list is not None:
+            payload["path_list"] = path_list
+        return payload
+
+    def scan(self,url,headers):
+        result=self.katanacommand(url,headers)
+
         return result
-    def katanacommand(self,url):
+    def katanacommand(self,url,headers):
         result=[]
 
         try:
             outputfile=self.generate_random_filename()
-            output = subprocess.run(["katana","-jc","-jsl","-hl","-nc","-o",outputfile,"-u", url ], capture_output=True, text=True, timeout=900)
+            output = subprocess.run(["katana","-jc","-jsl","-hl","-nc","-o",outputfile,"-u", url ]+self.header_args(headers), capture_output=True, text=True, timeout=900)
             data=output.stdout.split("\n")
             try:
                 
@@ -79,7 +106,8 @@ class katanam(BHunters):
             domain = re.sub(r'^https?://', '', domain)
             domain = domain.rstrip('/')
             self.update_task_status(domain,"Started")
-            result=self.scan(url)
+            headers=self.auth_headers(task)
+            result=self.scan(url,headers)
             urlstripped = re.sub(r'^https?://', '', url)
             urlstripped = urlstripped.rstrip('/')
             result = list(set(result))
@@ -103,10 +131,7 @@ class katanam(BHunters):
                 collection.update_one({"report_id": ObjectId(report_id),"source":self.identity}, {"$push": {f"Links": {"$each": new_links}}}, upsert=True)
                 tag_task = Task(
                     {"type": "paths", "stage": "scan"},
-                    payload={"data": urlstripped,
-                            "subdomain":domain,
-                    "source":"katana"
-                    }
+                    payload=self.paths_payload(task, domain, urlstripped)
                 )
                 self.send_task(tag_task)
 
