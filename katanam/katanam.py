@@ -69,7 +69,10 @@ class katanam(BHunters):
 
         try:
             outputfile=self.generate_random_filename()
-            output = subprocess.run(["katana","-jc","-jsl","-hl","-nc","-o",outputfile,"-u", url ]+self.header_args(headers), capture_output=True, text=True, timeout=900)
+            # The crawl has a depth and a concurrency of its own: without
+            # them katana follows every link it finds and starves the
+            # other workers of the scan.
+            output = subprocess.run(["katana","-jc","-jsl","-hl","-nc","-d","3","-c","5","-o",outputfile,"-u", url ]+self.header_args(headers), capture_output=True, text=True, timeout=300)
             data=output.stdout.split("\n")
             try:
                 
