@@ -9,7 +9,6 @@ RUN CGO_ENABLED=0 go install github.com/projectdiscovery/katana/cmd/katana@v1.8.
 FROM python@sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b
 
 # Copy Go binaries and tools from the build stage
-COPY --from=build /usr/local/go /usr/local/go
 COPY --from=build /go/bin/ /root/go/bin
 RUN apt update &&  apt install zip curl wget git chromium -y && apt clean && rm -rf /var/lib/apt/lists/*
 # The shared class is built from this repository, not from the published
